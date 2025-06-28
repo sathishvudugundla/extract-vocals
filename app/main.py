@@ -78,6 +78,10 @@ def cleanup_resources():
 def read_root():
     return {"message": "🎶 Multi-task audio server is running."}
 
+@app.get("/healthz")
+def health():
+    return {"status": "ok"}
+
 @app.post("/predict-instrument")
 async def predict_instrument(request: Request, file: UploadFile = File(...)):
     MAX_SIZE_MB = 10
