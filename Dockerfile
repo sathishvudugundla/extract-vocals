@@ -41,7 +41,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY ./app ./app
 
 # Ensure model is copied
-COPY app/instrument_model.h5 app/instrument_model.h5
+COPY app/instrument_model_cleaned.h5 app/instrument_model_cleaned.h5
 
 # Set environment variable for port
 ENV PORT=8000
