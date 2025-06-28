@@ -102,6 +102,7 @@ import logging
 import gc
 import psutil
 
+from starlette.concurrency import run_in_threadpool
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse, FileResponse
 from spleeter.separator import Separator
@@ -166,23 +167,53 @@ async def extract_vocals(file: UploadFile = File(...)):
             os.remove(input_path)
         cleanup_resources()
 
-@app.post("/extract-lyrics")
-async def extract_lyrics(file: UploadFile = File(...)):
-    temp_wav = os.path.join(BASE_DIR, "temp_lyrics.wav")
+# @app.post("/extract-lyrics")
+# async def extract_lyrics(file: UploadFile = File(...)):
+#     temp_wav = os.path.join(BASE_DIR, "temp_lyrics.wav")
+#     try:
+#         with open(temp_wav, "wb") as buffer:
+#             shutil.copyfileobj(file.file, buffer)
+
+#         result = whisper_model.transcribe(temp_wav, language="en")
+#         lyrics = result.get("text", "").strip()
+
+#         return JSONResponse({"lyrics": lyrics})
+
+#     except Exception as e:
+#         logger.exception("🚨 Lyrics extraction error:")
+#         return JSONResponse(status_code=500, content={"error": str(e)})
+
+#     finally:
+#         if os.path.exists(temp_wav):
+#             os.remove(temp_wav)
+#         cleanup_resources()
+
+@app.post("/extract-vocals")
+async def extract_vocals(file: UploadFile = File(...)):
+    input_path = os.path.join(BASE_DIR, "temp_input.mp3")
+    os.makedirs(VOCALS_OUTPUT_DIR, exist_ok=True)
+
     try:
-        with open(temp_wav, "wb") as buffer:
+        with open(input_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        result = whisper_model.transcribe(temp_wav, language="en")
-        lyrics = result.get("text", "").strip()
+        # Run Spleeter in background thread
+        await run_in_threadpool(
+            separator.separate_to_file,
+            input_path, VOCALS_OUTPUT_DIR, "wav"
+        )
 
-        return JSONResponse({"lyrics": lyrics})
+        vocals_path = os.path.join(VOCALS_OUTPUT_DIR, "temp_input", "vocals.wav")
+        if not os.path.exists(vocals_path):
+            raise FileNotFoundError("Vocals not found after separation")
+
+        return FileResponse(vocals_path, media_type="audio/wav", filename="vocals.wav")
 
     except Exception as e:
-        logger.exception("🚨 Lyrics extraction error:")
+        logger.exception("🚨 Vocal extraction error:")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
     finally:
-        if os.path.exists(temp_wav):
-            os.remove(temp_wav)
+        if os.path.exists(input_path):
+            os.remove(input_path)
         cleanup_resources()
