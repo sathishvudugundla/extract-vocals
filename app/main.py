@@ -22,7 +22,6 @@ VOCALS_OUTPUT_DIR = os.path.join(BASE_DIR, "vocals_output")
 
 # --- Load Models ---
 separator = Separator('spleeter:2stems')
-_ = separator.audio_adapter  # Ensure model and adapter are initialized
 logger.info("🎧 Spleeter loaded.")
 
 whisper_model = whisper.load_model("medium")
