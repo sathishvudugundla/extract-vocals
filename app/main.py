@@ -11,9 +11,11 @@ import threading
 
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
+from starlette.concurrency import run_in_threadpool
 import tensorflow as tf
 from spleeter.separator import Separator
 import whisper
+
 
 # --- Setup ---
 app = FastAPI()
@@ -78,9 +80,6 @@ def cleanup_resources():
 def read_root():
     return {"message": "🎶 Multi-task audio server is running."}
 
-@app.get("/healthz")
-def health():
-    return {"status": "ok"}
 
 @app.post("/predict-instrument")
 async def predict_instrument(request: Request, file: UploadFile = File(...)):
@@ -118,6 +117,32 @@ async def predict_instrument(request: Request, file: UploadFile = File(...)):
             os.remove(temp_filename)
         cleanup_resources()
 
+# @app.post("/extract-vocals")
+# async def extract_vocals(file: UploadFile = File(...)):
+#     input_path = os.path.join(BASE_DIR, "temp_input.mp3")
+#     os.makedirs(VOCALS_OUTPUT_DIR, exist_ok=True)
+
+#     try:
+#         with open(input_path, "wb") as buffer:
+#             shutil.copyfileobj(file.file, buffer)
+
+#         separator.separate_to_file(input_path, VOCALS_OUTPUT_DIR, codec='wav')
+
+#         vocals_path = os.path.join(VOCALS_OUTPUT_DIR, "temp_input", "vocals.wav")
+#         if not os.path.exists(vocals_path):
+#             raise FileNotFoundError("Vocals not found after separation")
+
+#         return FileResponse(vocals_path, media_type="audio/wav", filename="vocals.wav")
+
+#     except Exception as e:
+#         logger.exception("🚨 Vocal extraction error:")
+#         return JSONResponse(status_code=500, content={"error": str(e)})
+
+#     finally:
+#         if os.path.exists(input_path):
+#             os.remove(input_path)
+#         cleanup_resources()
+
 @app.post("/extract-vocals")
 async def extract_vocals(file: UploadFile = File(...)):
     input_path = os.path.join(BASE_DIR, "temp_input.mp3")
@@ -127,7 +152,13 @@ async def extract_vocals(file: UploadFile = File(...)):
         with open(input_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        separator.separate_to_file(input_path, VOCALS_OUTPUT_DIR, codec='wav')
+        # Run blocking call in background thread
+        await run_in_threadpool(
+            separator.separate_to_file,
+            input_path,
+            VOCALS_OUTPUT_DIR,
+            "wav"
+        )
 
         vocals_path = os.path.join(VOCALS_OUTPUT_DIR, "temp_input", "vocals.wav")
         if not os.path.exists(vocals_path):
