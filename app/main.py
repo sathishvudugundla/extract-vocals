@@ -152,12 +152,10 @@ async def extract_vocals(file: UploadFile = File(...)):
         with open(input_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # Run blocking call in background thread
+        # Run Spleeter in background thread
         await run_in_threadpool(
             separator.separate_to_file,
-            input_path,
-            VOCALS_OUTPUT_DIR,
-            "wav"
+            input_path, VOCALS_OUTPUT_DIR, "wav"
         )
 
         vocals_path = os.path.join(VOCALS_OUTPUT_DIR, "temp_input", "vocals.wav")
@@ -175,6 +173,26 @@ async def extract_vocals(file: UploadFile = File(...)):
             os.remove(input_path)
         cleanup_resources()
 
+# @app.post("/extract-lyrics")
+# async def extract_lyrics(file: UploadFile = File(...)):
+#     temp_wav = os.path.join(BASE_DIR, "temp_lyrics.wav")
+#     try:
+#         with open(temp_wav, "wb") as buffer:
+#             shutil.copyfileobj(file.file, buffer)
+
+#         result = whisper_model.transcribe(temp_wav, language="en")
+#         lyrics = result.get("text", "").strip()
+
+#         return JSONResponse({"lyrics": lyrics})
+
+#     except Exception as e:
+#         logger.exception("🚨 Lyrics extraction error:")
+#         return JSONResponse(status_code=500, content={"error": str(e)})
+
+#     finally:
+#         if os.path.exists(temp_wav):
+#             os.remove(temp_wav)
+#         cleanup_resources()
 @app.post("/extract-lyrics")
 async def extract_lyrics(file: UploadFile = File(...)):
     temp_wav = os.path.join(BASE_DIR, "temp_lyrics.wav")
@@ -182,7 +200,8 @@ async def extract_lyrics(file: UploadFile = File(...)):
         with open(temp_wav, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        result = whisper_model.transcribe(temp_wav, language="en")
+        # Run whisper transcription in threadpool
+        result = await run_in_threadpool(whisper_model.transcribe, temp_wav, language="en")
         lyrics = result.get("text", "").strip()
 
         return JSONResponse({"lyrics": lyrics})
@@ -195,3 +214,4 @@ async def extract_lyrics(file: UploadFile = File(...)):
         if os.path.exists(temp_wav):
             os.remove(temp_wav)
         cleanup_resources()
+
