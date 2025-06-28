@@ -1,8 +1,10 @@
-FROM python:3.10-slim
+# Use full TensorFlow image to avoid compatibility issues
+FROM tensorflow/tensorflow:2.13.0
 
+# Set working directory
 WORKDIR /app
 
-# Install system libraries
+# Install system packages
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     libsndfile1 \
@@ -12,15 +14,15 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy everything inside the app folder
+# Copy app code and model
 COPY ./app ./app
 
-# Default port
+# Expose port (Railway sets this via env, but it's fine to declare)
 ENV PORT=8000
 
-# Run the FastAPI app
+# Start the FastAPI app
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
