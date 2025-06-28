@@ -7,11 +7,12 @@
 # openai-whisper
 fastapi
 uvicorn[standard]
-numpy==1.24.3
-scipy
+tensorflow==2.13.0
+numpy
 librosa<0.9.0
 soundfile
 python-multipart
 psutil
 spleeter==2.3.2
 openai-whisper
+scipy
