@@ -1,12 +1,11 @@
 fastapi
 uvicorn[standard]
-tensorflow==2.13.0
+tensorflow
 numpy
-librosa>=0.10.0
+librosa
 soundfile
 python-multipart
 psutil
-spleeter==2.3.2
+spleeter
 openai-whisper
-scipy>=1.10.0
-typing-extensions>=4.5.0
+
