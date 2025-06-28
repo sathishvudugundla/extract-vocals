@@ -1,7 +1,17 @@
+# fastapi
+# uvicorn[standard]
+# numpy
+# soundfile
+# psutil
+# spleeter==2.3.2
+# openai-whisper
 fastapi
 uvicorn[standard]
-numpy
+numpy==1.24.3
+scipy
+librosa<0.9.0
 soundfile
+python-multipart
 psutil
 spleeter==2.3.2
 openai-whisper
