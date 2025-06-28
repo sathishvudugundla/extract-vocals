@@ -47,4 +47,4 @@ COPY app/instrument_model_cleaned.h5 app/instrument_model_cleaned.h5
 ENV PORT=8000
 
 # Start the FastAPI app with Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--limit-max-request-size", "100"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
