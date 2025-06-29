@@ -62,10 +62,25 @@
 
 # CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
 
-FROM tensorflow/tensorflow:2.13.0
-WORKDIR /app
-COPY ./requirements.txt .
+# FROM tensorflow/tensorflow:2.13.0
+# WORKDIR /app
+# COPY ./requirements.txt .
+# RUN pip install --upgrade pip && pip install -r requirements.txt
+# COPY ./app ./app
+# EXPOSE 8080
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+ FROM tensorflow/tensorflow:2.13.0
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y ffmpeg && apt-get clean
+
+# Install Python dependencies
+COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# Copy app files
 COPY ./app ./app
 EXPOSE 8080
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Run the FastAPI app
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
