@@ -62,9 +62,7 @@
 
 # CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
 
-
-
-FROM python:3.10
+FROM tensorflow/tensorflow:2.13.0
 WORKDIR /app
 COPY ./requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
