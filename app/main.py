@@ -120,9 +120,9 @@ VOCALS_OUTPUT_DIR = os.path.join(BASE_DIR, "vocals_output")
 separator = Separator('spleeter:2stems')
 logger.info("🎧 Spleeter loaded.")
 
-whisper_model = whisper.load_model("medium")
 # whisper_model = whisper.load_model("medium")
-# whisper_model = whisper.load_model("base")
+# whisper_model = whisper.load_model("medium")
+whisper_model = whisper.load_model("base")
 logger.info("🗣️ Whisper model loaded.")
 
 # --- Helpers ---
